@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f4e4d6">
 <title>Flash</title>
-<style>  :root {
+<link rel="preload" href="fonts/InstrumentSerif-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face { font-family: "Instrument Serif"; src: url(fonts/InstrumentSerif-normal.woff2) format("woff2"); font-style: normal; font-display: swap; }
+  @font-face { font-family: "Instrument Serif"; src: url(fonts/InstrumentSerif-italic.woff2) format("woff2"); font-style: italic; font-display: swap; }
+  @font-face { font-family: "Plex Mono"; src: url(fonts/IBMPlexMono-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Plex Mono"; src: url(fonts/IBMPlexMono-600.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+  :root {
     --paper: #f4e4d6; --paper-2: #ecd8c7; --paper-3: #e3cbb8; --ink: #211a16; --ink-2: #5d4f45; --ink-3: #8d7a6c; --rule: #2a201b;
     --bid: #1f4f8f; --ask: #b0352b; --up: #1d6b45; --down: #b0352b; --hl: #fff6c9;
     --serif: "Instrument Serif", Georgia, serif; --mono: "Plex Mono", ui-monospace, Menlo, monospace;
@@ -75,7 +81,7 @@
   button:active { transform: translateY(1px); }
   button.on { background: var(--ink); color: var(--paper); }
   button.buy { background: var(--up); color: #fff; border-color: var(--up); } button.sell { background: var(--down); color: #fff; border-color: var(--down); }
-  button.buy:hover, button.sell:hover {  }
+  button.buy:hover, button.sell:hover { filter: brightness(1.1); }
   button:focus-visible { outline: 2px solid var(--bid); outline-offset: 2px; }
 
   .lower { margin-top: 26px; border-top: 3px double var(--rule); padding-top: 14px; }
