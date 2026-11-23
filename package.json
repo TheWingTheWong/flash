@@ -1,0 +1,14 @@
+{
+  "name": "flash",
+  "version": "1.0.0",
+  "description": "A living stock exchange: 500 simulated traders, market makers and a real matching engine, where flash crashes emerge on their own.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node serve.mjs 8080"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
