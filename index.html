@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4e4d6">
+<title>Flash</title>
+<style>  :root {
+    --paper: #f4e4d6; --paper-2: #ecd8c7; --paper-3: #e3cbb8; --ink: #211a16; --ink-2: #5d4f45; --ink-3: #8d7a6c; --rule: #2a201b;
+    --bid: #1f4f8f; --ask: #b0352b; --up: #1d6b45; --down: #b0352b; --hl: #fff6c9;
+    --serif: "Instrument Serif", Georgia, serif; --mono: "Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font: 13px/1.5 var(--mono); }
+  main { max-width: 1280px; margin: 0 auto; padding: 22px 18px 40px; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  .mast { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 12px; border-bottom: 3px double var(--rule); padding-bottom: 8px; }
+  .mast .l, .mast .r { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+  .mast .r { text-align: right; }
+  h1 { margin: 0; font: 400 clamp(56px, 8vw, 96px)/.85 var(--serif); letter-spacing: -0.02em; text-align: center; }
+  h1 i { font-style: italic; }
+  .dek { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding: 7px 0; }
+  .dek em { font: italic 400 19px var(--serif); }
+  .dek span { font-size: 11px; color: var(--ink-2); letter-spacing: .06em; text-transform: uppercase; align-self: center; }
+
+  .ticker { display: grid; grid-template-columns: repeat(6, auto); gap: 4px 26px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .ticker .sym { font: 400 34px/1 var(--serif); }
+  .ticker .px { font: 600 30px/1 var(--mono); letter-spacing: -0.02em; }
+  .ticker .chg.up { color: var(--up); } .ticker .chg.down { color: var(--down); }
+  .ticker .k { font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .1em; display: block; }
+  .ticker .v { font-weight: 600; }
+  .flag { display: inline-block; padding: 1px 7px; border: 1.5px solid currentColor; font-weight: 600; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .flag.bad { color: var(--down); background: #f8d6cf; } .flag.ok { color: var(--up); }
+  @media (max-width: 860px) { .ticker { grid-template-columns: repeat(3, auto); } }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; grid-template-areas: "chart side" "below side"; gap: 18px 22px; margin-top: 16px; align-items: start; }
+  .chartcol { grid-area: chart; min-width: 0; } .side { grid-area: side; min-width: 0; } .below { grid-area: below; min-width: 0; }
+  .below { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; align-items: start; }
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "chart" "side" "below"; }
+  }
+  @media (max-width: 700px) { .below { grid-template-columns: minmax(0, 1fr); } }
+  .chart-wrap { position: relative; border: 1px solid var(--rule); background: var(--paper); }
+  canvas#chart { display: block; width: 100%; height: 470px; }
+  .chart-cap { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 11px; color: var(--ink-2); margin-top: 6px; }
+  .chart-cap b { color: var(--bid); } .chart-cap b.a { color: var(--ask); }
+
+  h2 { margin: 0 0 6px; font: 400 23px/1.1 var(--serif); border-bottom: 1px solid var(--rule); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: baseline; }
+  h2 small { font: 400 10.5px var(--mono); color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+  .side section + section { margin-top: 18px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  .ladder td { padding: 1px 6px; position: relative; font-size: 12px; }
+  .ladder td.p { text-align: center; font-weight: 600; width: 34%; }
+  .ladder td.q { width: 33%; }
+  .ladder .bar { position: absolute; top: 2px; bottom: 2px; opacity: .2; }
+  .ladder .ask .bar { background: var(--ask); left: 0; } .ladder .bid .bar { background: var(--bid); right: 0; }
+  .ladder .ask td.q.r { text-align: right; color: var(--ask); } .ladder .bid td.q.l { color: var(--bid); }
+  .ladder .mid td { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); text-align: center; font-size: 11px; color: var(--ink-2); padding: 2px; }
+
+  .tape td { font-size: 11.5px; padding: 0 4px; }
+  .tape .b { color: var(--up); } .tape .s { color: var(--down); }
+  .tape tr.you td { background: var(--hl); font-weight: 600; }
+
+  .desk .pos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 10px; }
+  .desk .pos div { font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; }
+  .desk .pos b { display: block; font-size: 16px; color: var(--ink); letter-spacing: 0; }
+  .sizes { display: flex; gap: 4px; margin-bottom: 8px; }
+  .sizes button { flex: 1; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .row2 + .row2, .sizes + .row2 { margin-top: 6px; }
+  button { appearance: none; font: 600 12px var(--mono); background: var(--paper); color: var(--ink); border: 1.5px solid var(--rule); padding: 7px 8px; cursor: pointer; letter-spacing: .03em; }
+  button:hover { background: var(--paper-2); }
+  button:active { transform: translateY(1px); }
+  button.on { background: var(--ink); color: var(--paper); }
+  button.buy { background: var(--up); color: #fff; border-color: var(--up); } button.sell { background: var(--down); color: #fff; border-color: var(--down); }
+  button.buy:hover, button.sell:hover {  }
+  button:focus-visible { outline: 2px solid var(--bid); outline-offset: 2px; }
+
+  .lower { margin-top: 26px; border-top: 3px double var(--rule); padding-top: 14px; }
+  .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 1100px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .facts { grid-template-columns: minmax(0, 1fr); } }
+  .fact { border: 1px solid var(--rule); padding: 10px 12px; background: var(--paper-2); }
+  .fact h3 { margin: 0; font: 400 18px/1.15 var(--serif); display: flex; justify-content: space-between; gap: 8px; }
+  .fact .val { font: 600 24px var(--mono); margin: 4px 0 2px; }
+  .fact .val small { font: 400 12px var(--mono); color: var(--ink-3); margin-left: 6px; }
+  .fact p { margin: 0; font-size: 11.5px; color: var(--ink-2); }
+  .mark { font: 600 11px var(--mono); padding: 1px 6px; border: 1.5px solid; height: fit-content; white-space: nowrap; }
+  .mark.yes { color: var(--up); } .mark.no { color: var(--down); } .mark.wait { color: var(--ink-3); }
+  .facts-note { font-size: 11.5px; color: var(--ink-2); margin-top: 10px; }
+  .heads { list-style: none; margin: 0; padding: 0; }
+  .heads li { padding: 9px 0; border-bottom: 1px solid var(--paper-3); min-width: 0; }
+  .heads li b { display: block; font: 400 21px/1.15 var(--serif); }
+  .heads li span { font-size: 11px; color: var(--ink-3); }
+  .heads li.empty { color: var(--ink-3); font: italic 18px var(--serif); }
+  .how { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 12px; columns: 3 260px; column-gap: 26px; font-size: 12.5px; color: var(--ink-2); }
+  .how p { margin: 0 0 10px; break-inside: avoid; }
+  .how b { color: var(--ink); font-weight: 600; }
+  .how .drop::first-letter { font: 400 46px/.8 var(--serif); float: left; margin: 4px 6px 0 0; color: var(--ink); }
+  footer { margin-top: 20px; border-top: 1px solid var(--rule); padding-top: 8px; font-size: 11px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  footer a { color: var(--ink-2); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="mast">
+      <div class="l">Simulated session · <span id="clock">09:30:00</span></div>
+      <h1>Fl<i>a</i>sh</h1>
+      <div class="r">Ticker FLSH · <span id="seedLbl"></span> · 1 step = 1 second</div>
+    </div>
+    <div class="dek"><em>An exchange that runs itself: 500 simulated traders, six market makers, one order book. And you.</em><span>Nothing here is real money. Everything here is real mechanics.</span></div>
+  </header>
+
+  <div class="ticker">
+    <div class="sym">FLSH</div>
+    <div><span class="k">Last</span><span class="px num" id="px">100.00</span></div>
+    <div><span class="k">Change</span><span class="chg num v" id="chg">+0.00%</span></div>
+    <div><span class="k">Spread</span><span class="v num" id="spread">—</span></div>
+    <div><span class="k">Volume</span><span class="v num" id="vol">0</span></div>
+    <div><span class="k">Market makers</span><span id="mm" class="flag ok">quoting</span></div>
+  </div>
+
+  <div class="layout">
+    <div class="chartcol">
+      <div class="chart-wrap"><canvas id="chart" aria-label="Price and order book depth over time"></canvas></div>
+      <div class="chart-cap"><span>Ink density = resting orders waiting in the book: <b>bids</b> below, <b class="a">asks</b> above. The line is the price.</span><span id="actLbl">activity 1.0×</span></div>
+    </div>
+
+    <aside class="side">
+      <section>
+        <h2>Order book <small>top 10</small></h2>
+        <table class="ladder num"><tbody id="ladder"></tbody></table>
+      </section>
+      <section class="desk">
+        <h2>Your desk <small>account 0</small></h2>
+        <div class="pos num">
+          <div>Position<b id="posQ">0</b></div>
+          <div>Avg cost<b id="posAvg">—</b></div>
+          <div>P&amp;L<b id="posPnl">$0</b></div>
+        </div>
+        <div class="sizes" id="sizes">
+          <button data-q="100">100</button><button data-q="1000" class="on">1k</button><button data-q="5000">5k</button><button data-q="20000">20k</button>
+        </div>
+        <div class="row2"><button class="buy" id="buyBtn">Buy at market</button><button class="sell" id="sellBtn">Sell at market</button></div>
+        <div class="row2"><button id="pullBtn">Pull the market makers</button><button id="flatBtn">Close my position</button></div>
+        <div class="row2"><button id="goodBtn">Good news (+4%)</button><button id="badBtn">Bad news (−4%)</button></div>
+        <div class="row2"><button id="pauseBtn">Pause</button><button id="speedBtn">Speed 2×</button></div>
+      </section>
+    </aside>
+
+    <div class="below">
+      <section class="news">
+        <h2>Headlines <small>written by the market</small></h2>
+        <ul class="heads" id="heads"><li class="empty">Quiet so far. Try dumping 20,000 shares, or pull the market makers and then sell.</li></ul>
+      </section>
+      <section class="tapebox">
+        <h2>Tape <small>last trades</small></h2>
+        <table class="tape num"><tbody id="tape"></tbody></table>
+      </section>
+    </div>
+  </div>
+
+  <div class="lower">
+    <section>
+      <h2>Is it a real market? <small id="factsN">collecting…</small></h2>
+      <div class="facts" id="facts"></div>
+      <div class="facts-note">These are the “stylized facts”: statistical fingerprints shared by real stock, currency and crypto markets. Nobody coded them into Flash. They emerge from 500 traders and an order book, measured live from this session’s one-minute returns. <button id="ffBtn" style="margin-left:6px">Fast-forward 6 hours</button> <button id="newBtn">New random session</button></div>
+    </section>
+  </div>
+
+  <div class="how">
+    <p class="drop"><b>The exchange</b> is a real matching engine: a limit order book with price-time priority, where every price level is a first-in-first-out queue. Every trade moves cash and shares between two accounts, and the totals are conserved to the share. A limit-up/limit-down band stops prints more than 8% from a slow reference price.</p>
+    <p><b>The traders</b> follow the Chiarella–Iori model. Each of 500 agents mixes three motives with personal weights: value (pull toward a fundamental price that moves with bursts of news), trend (extrapolate recent returns, or bet against them) and noise. They form an expected price and either rest a patient order or take liquidity near the touch.</p>
+    <p><b>The market makers</b> quote both sides around a blend of the last price and their estimate of fair value, lean against their inventory and never cross the market. That keeps calm trading efficient: the last minute says little about the next. When volatility spikes they pull everything and wait. That withdrawal, together with traders who arrive faster after big moves, is what turns a large sell order into a flash crash.</p>
+  </div>
+  <footer><span>Built from scratch: matching engine, agents and statistics, with no libraries.</span></footer>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
